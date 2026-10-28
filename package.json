@@ -1,0 +1,13 @@
+{
+  "name": "signscan",
+  "version": "0.0.1",
+  "description": "signscan: a cli tool to scan the application signing cert in a folder",
+  "type": "module",
+  "private": true,
+  "keywords": [],
+  "author": "Certseeds",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^2.1.302"
+  }
+}
