@@ -6,12 +6,15 @@ namespace signscan;
 
 internal static class Program
 {
-    private static int Main(string[] args)
+    internal static int Main(string[] args)
     {
         var inputOption = new Option<DirectoryInfo>("--input-dir")
         {
             Description = "要递归扫描的目录(只扫描 .exe 安装包)。",
-            Required = true,
+        };
+        var allowOption = new Option<DirectoryInfo>("--allow-dir")
+        {
+            Description = "白名单目录;扫描其中的 exe,并从输出目录的同名分组中移除其证书。",
         };
         var outputOption = new Option<DirectoryInfo>("--output-dir")
         {
@@ -22,16 +25,29 @@ internal static class Program
         var root = new RootCommand("从安装包 exe 中提取 Authenticode 签名证书。")
         {
             inputOption,
+            allowOption,
             outputOption,
         };
 
         root.SetAction(parseResult => Run(
-            parseResult.GetValue(inputOption)!,
+            parseResult.GetValue(inputOption),
+            parseResult.GetValue(allowOption),
             parseResult.GetValue(outputOption)!));
 
         try
         {
-            return root.Parse(args).Invoke();
+            var parseResult = root.Parse(args);
+            if (parseResult.Errors.Count > 0)
+            {
+                foreach (var error in parseResult.Errors)
+                {
+                    Console.Error.WriteLine(error.Message);
+                }
+
+                return 2;
+            }
+
+            return parseResult.Invoke();
         }
         catch (Exception ex)
         {
@@ -40,7 +56,28 @@ internal static class Program
         }
     }
 
-    private static int Run(DirectoryInfo input, DirectoryInfo output)
+    internal static string? ValidateMode(DirectoryInfo? input, DirectoryInfo? allow) => (input, allow) switch
+    {
+        (null, null) => "必须指定 --input-dir 或 --allow-dir",
+        (not null, not null) => "不能同时指定 --input-dir 和 --allow-dir",
+        _ => null,
+    };
+
+    internal static int Run(DirectoryInfo? input, DirectoryInfo? allow, DirectoryInfo output)
+    {
+        var modeError = ValidateMode(input, allow);
+        if (modeError is not null)
+        {
+            Console.Error.WriteLine(modeError);
+            return 2;
+        }
+
+        return allow is not null
+            ? RunAllow(allow, output)
+            : RunScan(input!, output);
+    }
+
+    private static int RunScan(DirectoryInfo input, DirectoryInfo output)
     {
         if (!input.Exists)
         {
@@ -62,15 +99,7 @@ internal static class Program
             Console.WriteLine($"错误          : {result.ErrorCount}");
             Console.WriteLine($"输出          : {output.FullName}");
 
-            foreach (var warning in result.Warnings.Take(20))
-            {
-                Console.Error.WriteLine($"警告:{warning}");
-            }
-
-            if (result.Warnings.Count > 20)
-            {
-                Console.Error.WriteLine($"...还有 {result.Warnings.Count - 20} 条警告");
-            }
+            PrintWarnings(result.Warnings);
 
             return 0;
         }
@@ -83,6 +112,66 @@ internal static class Program
         {
             Console.Error.WriteLine($"扫描失败:{ex.Message}");
             return 1;
+        }
+    }
+
+    private static int RunAllow(DirectoryInfo allow, DirectoryInfo output) =>
+        RunAllow(allow, output, new AuthenticodeSignerReader());
+
+    internal static int RunAllow(DirectoryInfo allow, DirectoryInfo output, ISignerReader reader)
+    {
+        if (!allow.Exists)
+        {
+            Console.Error.WriteLine($"白名单目录不存在:{allow.FullName}");
+            return 2;
+        }
+
+        if (!output.Exists)
+        {
+            Console.Error.WriteLine($"输出目录不存在:{output.FullName}");
+            return 2;
+        }
+
+        try
+        {
+            var result = CertRemover.Remove(new RemoveOptions(
+                allow.FullName,
+                output.FullName,
+                reader));
+
+            Console.WriteLine($"白名单 exe    : {result.ExeCount}");
+            Console.WriteLine($"有内嵌签名    : {result.SignedCount}");
+            Console.WriteLine($"移除证书      : {result.RemovedCount}");
+            Console.WriteLine($"未命中        : {result.MissingCount}");
+            Console.WriteLine($"跳过(无签名)  : {result.SkippedCount}");
+            Console.WriteLine($"错误          : {result.ErrorCount}");
+            Console.WriteLine($"输出          : {output.FullName}");
+
+            PrintWarnings(result.Warnings);
+            return result.ErrorCount == 0 ? 0 : 1;
+        }
+        catch (DirectoryNotFoundException ex)
+        {
+            Console.Error.WriteLine(ex.Message);
+            return 2;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            Console.Error.WriteLine($"移除失败:{ex.Message}");
+            return 1;
+        }
+    }
+
+    private static void PrintWarnings(IReadOnlyList<string> warnings)
+    {
+        foreach (var warning in warnings.Take(20))
+        {
+            Console.Error.WriteLine($"警告:{warning}");
+        }
+
+        if (warnings.Count > 20)
+        {
+            Console.Error.WriteLine($"...还有 {warnings.Count - 20} 条警告");
         }
     }
 }

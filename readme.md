@@ -7,6 +7,7 @@
 ```powershell
 ./scripts/publish.ps1
 ./artifacts/publish/signscan.exe --input-dir <dir> --output-dir <dir>
+./artifacts/publish/signscan.exe --allow-dir <dir> --output-dir <dir>
 ```
 
 - 递归扫描 `.exe`(大小写不敏感),不扫描 dll/sys/msi/脚本
@@ -17,6 +18,9 @@
 - 证书用 DER 写出;日期用 UTC;哈希为证书 DER 的 SHA-256
 - 只有 catalog 签名、没有内嵌 PKCS#7 的 exe 会跳过
 - 位于输入根目录的 exe 归入 `others`
+- `--input-dir` 与 `--allow-dir` 必须恰好提供一个,否则直接退出(退出码 2)
+- `--allow-dir` 扫描白名单目录中的 `.exe`,按相同命名规则,只在同名顶层分组内删除 `--output-dir` 中对应的 `.cer`;输出目录必须已存在
+- 白名单证书在输出目录中不存在时给警告并计入未命中,不视为失败
 
 ## 开发
 

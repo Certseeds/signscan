@@ -9,3 +9,14 @@ internal sealed record ScanResult(
     int SkippedCount,
     int ErrorCount,
     IReadOnlyList<string> Warnings);
+
+internal sealed record RemoveOptions(string AllowDir, string OutputDir, ISignerReader Reader);
+
+internal sealed record RemoveResult(
+    int ExeCount,
+    int SignedCount,
+    int RemovedCount,
+    int MissingCount,
+    int SkippedCount,
+    int ErrorCount,
+    IReadOnlyList<string> Warnings);

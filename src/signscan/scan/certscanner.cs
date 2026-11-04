@@ -5,8 +5,6 @@ namespace signscan.Scan;
 
 internal static class CertScanner
 {
-    private const string OthersGroup = "others";
-
     internal static ScanResult Scan(ScanOptions options)
     {
         var inputFull = Path.GetFullPath(options.InputDir);
@@ -74,7 +72,7 @@ internal static class CertScanner
             }
 
             signedCount++;
-            var group = GroupFor(inputFull, file);
+            var group = TopLevelGroup.For(inputFull, file);
             var groupDir = Path.Combine(outputFull, group);
             Directory.CreateDirectory(groupDir);
 
@@ -92,13 +90,5 @@ internal static class CertScanner
         }
 
         return new ScanResult(exeCount, signedCount, certCount, skippedCount, errorCount, warnings);
-    }
-
-    /// <summary>只保留输入根目录的第一层作为分组;直接位于根目录的 exe 归入 others。</summary>
-    private static string GroupFor(string inputFull, string file)
-    {
-        var relative = Path.GetRelativePath(inputFull, file);
-        var separator = relative.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar });
-        return separator < 0 ? OthersGroup : relative[..separator];
     }
 }
