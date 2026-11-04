@@ -84,7 +84,7 @@ internal static class CertScanner
                     continue;
                 }
 
-                File.WriteAllBytes(certPath, cert.RawData);
+                AtomicFile.WriteAllBytes(certPath, cert.RawData);
                 certCount++;
             }
         }
