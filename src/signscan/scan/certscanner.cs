@@ -32,6 +32,7 @@ internal static class CertScanner
         };
 
         var warnings = new List<string>();
+        var mappings = new CertMappings();
         var exeCount = 0;
         var signedCount = 0;
         var certCount = 0;
@@ -73,12 +74,16 @@ internal static class CertScanner
 
             signedCount++;
             var group = TopLevelGroup.For(inputFull, file);
+            var companyApp = CompanyAppPath.From(inputFull, file);
             var groupDir = Path.Combine(outputFull, group);
             Directory.CreateDirectory(groupDir);
 
             foreach (var cert in signers)
             {
-                var certPath = Path.Combine(groupDir, CertFileName.From(cert));
+                var certName = CertFileName.From(cert);
+                mappings.Add(companyApp.Company, companyApp.Codename, certName);
+
+                var certPath = Path.Combine(groupDir, certName);
                 if (File.Exists(certPath))
                 {
                     continue;
@@ -88,6 +93,8 @@ internal static class CertScanner
                 certCount++;
             }
         }
+
+        mappings.Write(outputFull);
 
         return new ScanResult(exeCount, signedCount, certCount, skippedCount, errorCount, warnings);
     }

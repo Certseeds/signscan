@@ -29,7 +29,8 @@ internal static class CertRemover
         };
 
         var warnings = new List<string>();
-        var targets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var targets = new Dictionary<string, (string Company, string CertFile)>(
+            StringComparer.OrdinalIgnoreCase);
         var exeCount = 0;
         var signedCount = 0;
         var skippedCount = 0;
@@ -67,19 +68,22 @@ internal static class CertRemover
             var group = TopLevelGroup.For(allowFull, file);
             foreach (var cert in signers)
             {
-                targets.Add(Path.Combine(outputFull, group, CertFileName.From(cert)));
+                var certFile = CertFileName.From(cert);
+                targets[Path.Combine(outputFull, group, certFile)] = (group, certFile);
             }
         }
 
         var removedCount = 0;
         var missingCount = 0;
+        var mappingUpdates = new List<(string Company, string CertFile)>();
 
-        foreach (var target in targets)
+        foreach (var (target, info) in targets)
         {
             if (!File.Exists(target))
             {
                 missingCount++;
                 warnings.Add($"未命中:{target}");
+                mappingUpdates.Add(info);
                 continue;
             }
 
@@ -87,6 +91,7 @@ internal static class CertRemover
             {
                 File.Delete(target);
                 removedCount++;
+                mappingUpdates.Add(info);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
@@ -94,6 +99,8 @@ internal static class CertRemover
                 warnings.Add($"{target}:{ex.Message}");
             }
         }
+
+        CertMappings.Remove(outputFull, mappingUpdates);
 
         return new RemoveResult(
             exeCount,

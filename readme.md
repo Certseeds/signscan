@@ -21,6 +21,10 @@
 - `--input-dir` 与 `--allow-dir` 必须恰好提供一个,否则直接退出(退出码 2)
 - `--allow-dir` 扫描白名单目录中的 `.exe`,按相同命名规则,只在同名顶层分组内删除 `--output-dir` 中对应的 `.cer`;输出目录必须已存在
 - 白名单证书在输出目录中不存在时给警告并计入未命中,不视为失败
+- 扫描结束后在输出根目录生成 `company-app-to-cert.json` 和 `cert-to-company-app.json`
+- 映射以输入相对路径前两层为 `company` / `codename`;公司下直接放的 exe 的 codename 为 `others`,根目录 exe 为 `others - others`
+- 同一证书被多个公司/应用使用时,反向映射合并为一条并列出全部公司与应用
+- `--allow-dir` 删除证书后会同步清理映射:按公司移除该证书在所有 codename 下的引用,并重新生成两个文件;删除失败(文件被占用)的证书保留映射,映射文件不存在时跳过更新
 
 ## 开发
 
