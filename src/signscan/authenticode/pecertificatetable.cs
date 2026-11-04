@@ -5,16 +5,35 @@ namespace signscan.Authenticode;
 /// <summary>用 PEReader 读取 PE 的 IMAGE_DIRECTORY_ENTRY_SECURITY 证书表,返回每个 PKCS#7 blob。</summary>
 internal static class PeCertificateTable
 {
+    private const int MaxHeaderSize = 64 * 1024;
     private const ushort WinCertTypePkcsSignedData = 2;
 
     internal static IReadOnlyList<byte[]> ReadBlobs(string filePath)
     {
+        using var stream = File.OpenRead(filePath);
+        return ReadBlobs(stream);
+    }
+
+    /// <summary>
+    /// PEReader 只接受剩余长度不超过 int.MaxValue 的流,因此只把头部前缀交给它;
+    /// 证书表按文件偏移直接从原流读取,超过 2 GB 的 exe 也能扫描。
+    /// </summary>
+    internal static IReadOnlyList<byte[]> ReadBlobs(Stream stream)
+    {
         var blobs = new List<byte[]>();
 
-        using var stream = File.OpenRead(filePath);
         try
         {
-            using var peReader = new PEReader(stream, PEStreamOptions.LeaveOpen);
+            var headerSize = (int)Math.Min(stream.Length - stream.Position, MaxHeaderSize);
+            if (headerSize < 64)
+            {
+                return blobs;
+            }
+
+            var header = new byte[headerSize];
+            stream.ReadExactly(header);
+
+            using var peReader = new PEReader(new MemoryStream(header, writable: false));
             var peHeader = peReader.PEHeaders.PEHeader;
             if (peHeader is null)
             {
