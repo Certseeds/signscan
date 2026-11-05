@@ -9,6 +9,13 @@ public class CertMappingsTests
     private const string ForwardFile = "company-app-to-cert.json";
     private const string ReverseFile = "cert-to-company-app.json";
 
+    private static readonly string[] CompaniesAAndOthers = ["A", "others"];
+    private static readonly string[] CodenamesA1A2Others = ["A1", "A2", "others"];
+    private static readonly string[] CodenamesA1A2 = ["A1", "A2"];
+    private static readonly string[] CodenameB1 = ["B1"];
+    private static readonly string[] CompanyA = ["A"];
+    private static readonly string[] CompanyB = ["B"];
+
     [Fact]
     public void ForwardMappingGroupsCompanyAndCodename()
     {
@@ -33,12 +40,12 @@ public class CertMappingsTests
         var rootElement = doc.RootElement;
 
         Assert.Equal(
-            new[] { "A", "others" },
+            CompaniesAAndOthers,
             rootElement.EnumerateArray().Select(e => e.GetProperty("company").GetString()!).ToArray());
 
         var companyA = FindCompany(rootElement, "A");
         Assert.Equal(
-            new[] { "A1", "A2", "others" },
+            CodenamesA1A2Others,
             companyA.GetProperty("codenames").EnumerateArray()
                 .Select(e => e.GetProperty("codename").GetString()!).ToArray());
 
@@ -68,8 +75,8 @@ public class CertMappingsTests
 
         using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(output, ReverseFile)));
         Assert.Contains(name, ReverseCerlFiles(doc.RootElement));
-        Assert.Equal(new[] { "A1", "A2" }, ReverseCodenames(doc.RootElement, name, "A"));
-        Assert.Equal(new[] { "B1" }, ReverseCodenames(doc.RootElement, name, "B"));
+        Assert.Equal(CodenamesA1A2, ReverseCodenames(doc.RootElement, name, "A"));
+        Assert.Equal(CodenameB1, ReverseCodenames(doc.RootElement, name, "B"));
     }
 
     [Fact]
@@ -175,8 +182,8 @@ public class CertMappingsTests
         Assert.Equal(new[] { name }, Cerfiles(FindCompany(forward.RootElement, "B"), "B1"));
 
         using var reverse = JsonDocument.Parse(File.ReadAllText(Path.Combine(output, ReverseFile)));
-        Assert.Equal(new[] { "B" }, ReverseCompanies(reverse.RootElement, name));
-        Assert.Equal(new[] { "B1" }, ReverseCodenames(reverse.RootElement, name, "B"));
+        Assert.Equal(CompanyB, ReverseCompanies(reverse.RootElement, name));
+        Assert.Equal(CodenameB1, ReverseCodenames(reverse.RootElement, name, "B"));
     }
 
     [Fact]
@@ -207,7 +214,7 @@ public class CertMappingsTests
         using var forward = JsonDocument.Parse(File.ReadAllText(Path.Combine(output, ForwardFile)));
         Assert.Equal(new[] { name }, Cerfiles(FindCompany(forward.RootElement, "A"), "A1"));
         using var reverse = JsonDocument.Parse(File.ReadAllText(Path.Combine(output, ReverseFile)));
-        Assert.Equal(new[] { "A" }, ReverseCompanies(reverse.RootElement, name));
+        Assert.Equal(CompanyA, ReverseCompanies(reverse.RootElement, name));
     }
 
     [Fact]
