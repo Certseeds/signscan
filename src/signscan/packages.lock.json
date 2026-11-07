@@ -14,6 +14,12 @@
         "resolved": "10.0.14",
         "contentHash": "YlTamXppEQls6DYWt7RdUuwWDb0lyw/vXCaGeQpLCpsLmfwGuCkOz/vIGgMTV7ECsJcavkCOkxZXv9s8rdAHkQ=="
       },
+      "OpenMcdf": {
+        "type": "Direct",
+        "requested": "[3.4.0, )",
+        "resolved": "3.4.0",
+        "contentHash": "HO/oY3oEUJw1DEcjSxR/dMEhYbJ/psUH1mZ0OFDhqrDaZg/kEPc4Go1U7eRjYgEgsEqujYueE+0+A67VlttemQ=="
+      },
       "System.CommandLine": {
         "type": "Direct",
         "requested": "[2.0.14, )",

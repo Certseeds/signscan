@@ -10,7 +10,7 @@ internal static class Program
     {
         var inputOption = new Option<DirectoryInfo>("--input-dir")
         {
-            Description = "要递归扫描的目录(只扫描 .exe 安装包)。",
+            Description = "要递归扫描的目录(扫描 .exe 与 .msi/.msp/.mst 安装包)。",
         };
         var allowOption = new Option<DirectoryInfo>("--allow-dir")
         {
@@ -90,9 +90,9 @@ internal static class Program
             var result = CertScanner.Scan(new ScanOptions(
                 input.FullName,
                 output.FullName,
-                new AuthenticodeSignerReader()));
+                new FileSignerReader()));
 
-            Console.WriteLine($"扫描 exe      : {result.ExeCount}");
+            Console.WriteLine($"扫描安装包    : {result.ExeCount}");
             Console.WriteLine($"有内嵌签名    : {result.SignedCount}");
             Console.WriteLine($"提取证书      : {result.CertCount}");
             Console.WriteLine($"跳过(无签名)  : {result.SkippedCount}");
@@ -116,7 +116,7 @@ internal static class Program
     }
 
     private static int RunAllow(DirectoryInfo allow, DirectoryInfo output) =>
-        RunAllow(allow, output, new AuthenticodeSignerReader());
+        RunAllow(allow, output, new FileSignerReader());
 
     internal static int RunAllow(DirectoryInfo allow, DirectoryInfo output, ISignerReader reader)
     {
@@ -139,7 +139,7 @@ internal static class Program
                 output.FullName,
                 reader));
 
-            Console.WriteLine($"白名单 exe    : {result.ExeCount}");
+            Console.WriteLine($"白名单安装包  : {result.ExeCount}");
             Console.WriteLine($"有内嵌签名    : {result.SignedCount}");
             Console.WriteLine($"移除证书      : {result.RemovedCount}");
             Console.WriteLine($"未命中        : {result.MissingCount}");

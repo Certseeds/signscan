@@ -218,6 +218,28 @@ public class CertRemoverTests
         Assert.False(File.Exists(target));
     }
 
+    [Theory]
+    [InlineData(".msi")]
+    [InlineData(".msp")]
+    [InlineData(".mst")]
+    public void RemovesInstallerCertificate(string extension)
+    {
+        var root = TempDir.Create();
+        var output = Path.Combine(root, "output");
+        var allow = Path.Combine(root, "allow");
+        var signer = TempDir.Signer();
+        var name = CertFileName.From(signer);
+        TempDir.WriteFile(output, Path.Combine("A", name));
+
+        var reader = new FakeSignerReader();
+        reader.Map[TempDir.WriteFile(allow, $"A/setup{extension}")] = new[] { signer };
+
+        var result = CertRemover.Remove(new RemoveOptions(allow, output, reader));
+
+        Assert.Equal(1, result.RemovedCount);
+        Assert.False(File.Exists(Path.Combine(output, "A", name)));
+    }
+
     private static (string Allow, string Output) CreateDirs()
     {
         var root = TempDir.Create();
