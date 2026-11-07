@@ -44,4 +44,4 @@ jobs:
         uses: Certseeds/common-actions/actions/upload-artifact@v1
         with:
           name: signscan-v${{ steps.package.outputs.version }}-win-x64
-          path: artifacts/release/signscan-v${{ steps.package.outputs.version }}-win-x64.zip
+          path: artifacts/release/signscan-v${{ steps.package.outputs.version }}-win-x64
