@@ -41,8 +41,7 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: Certseeds/common-actions/actions/upload-artifact@v1
         with:
           name: signscan-v${{ steps.package.outputs.version }}-win-x64
           path: artifacts/release/signscan-v${{ steps.package.outputs.version }}-win-x64.zip
-          if-no-files-found: error
