@@ -41,7 +41,7 @@ internal static class CertScanner
 
         foreach (var file in Directory.EnumerateFiles(inputFull, "*", enumeration))
         {
-            if (!string.Equals(Path.GetExtension(file), ".exe", StringComparison.OrdinalIgnoreCase))
+            if (!SupportedFile.IsSupported(file))
             {
                 continue;
             }

@@ -111,6 +111,26 @@ public class CertScannerTests
         Assert.Single(Directory.GetFiles(Path.Combine(output, "A"), "*.cer"));
     }
 
+    [Theory]
+    [InlineData(".msi")]
+    [InlineData(".msp")]
+    [InlineData(".mst")]
+    public void ScansInstallerFiles(string extension)
+    {
+        var root = TempDir.Create();
+        var input = Path.Combine(root, "input");
+        var output = Path.Combine(root, "output");
+        var reader = new FakeSignerReader();
+        var signer = TempDir.Signer();
+        reader.Map[TempDir.WriteFile(input, $"A/A1/setup{extension}")] = new[] { signer };
+
+        var result = CertScanner.Scan(new ScanOptions(input, output, reader));
+
+        Assert.Equal(1, result.ExeCount);
+        Assert.Equal(1, result.CertCount);
+        Assert.Single(Directory.GetFiles(Path.Combine(output, "A"), "*.cer"));
+    }
+
     [Fact]
     public void DoesNotScanOutputDirectoryWhenItIsInsideInput()
     {

@@ -38,7 +38,7 @@ internal static class CertRemover
 
         foreach (var file in Directory.EnumerateFiles(allowFull, "*", enumeration))
         {
-            if (!string.Equals(Path.GetExtension(file), ".exe", StringComparison.OrdinalIgnoreCase))
+            if (!SupportedFile.IsSupported(file))
             {
                 continue;
             }
