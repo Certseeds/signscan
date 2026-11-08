@@ -2,12 +2,20 @@ namespace signscan.Scan;
 
 internal static class SupportedFile
 {
-    internal static bool IsSupported(string filePath)
+    private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        var extension = Path.GetExtension(filePath);
-        return extension.Equals(".exe", StringComparison.OrdinalIgnoreCase)
-            || extension.Equals(".msi", StringComparison.OrdinalIgnoreCase)
-            || extension.Equals(".msp", StringComparison.OrdinalIgnoreCase)
-            || extension.Equals(".mst", StringComparison.OrdinalIgnoreCase);
-    }
+        ".exe",
+        ".dll",
+        ".sys",
+        ".drv",
+        ".ocx",
+        ".cpl",
+        ".scr",
+        ".msi",
+        ".msp",
+        ".mst",
+    };
+
+    internal static bool IsSupported(string filePath)
+        => Extensions.Contains(Path.GetExtension(filePath));
 }

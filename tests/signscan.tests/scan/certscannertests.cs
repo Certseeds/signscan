@@ -81,14 +81,14 @@ public class CertScannerTests
     }
 
     [Fact]
-    public void IgnoresNonExeFiles()
+    public void IgnoresUnsupportedFiles()
     {
         var root = TempDir.Create();
         var input = Path.Combine(root, "input");
         var output = Path.Combine(root, "output");
         var reader = new FakeSignerReader();
-        TempDir.WriteFile(input, "A/x.dll");
-        TempDir.WriteFile(input, "A/x.sys");
+        TempDir.WriteFile(input, "A/x.txt");
+        TempDir.WriteFile(input, "A/x.pyd");
 
         var result = CertScanner.Scan(new ScanOptions(input, output, reader));
 
@@ -112,10 +112,16 @@ public class CertScannerTests
     }
 
     [Theory]
+    [InlineData(".dll")]
+    [InlineData(".sys")]
+    [InlineData(".drv")]
+    [InlineData(".ocx")]
+    [InlineData(".cpl")]
+    [InlineData(".scr")]
     [InlineData(".msi")]
     [InlineData(".msp")]
     [InlineData(".mst")]
-    public void ScansInstallerFiles(string extension)
+    public void ScansSupportedFiles(string extension)
     {
         var root = TempDir.Create();
         var input = Path.Combine(root, "input");

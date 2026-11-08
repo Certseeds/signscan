@@ -130,12 +130,12 @@ public class CertRemoverTests
     }
 
     [Fact]
-    public void IgnoresNonExeFiles()
+    public void IgnoresUnsupportedFiles()
     {
         var (allow, output) = CreateDirs();
         var reader = new FakeSignerReader();
-        TempDir.WriteFile(allow, "A/x.dll");
-        TempDir.WriteFile(allow, "A/x.sys");
+        TempDir.WriteFile(allow, "A/x.txt");
+        TempDir.WriteFile(allow, "A/x.pyd");
 
         var result = CertRemover.Remove(new RemoveOptions(allow, output, reader));
 
@@ -219,10 +219,16 @@ public class CertRemoverTests
     }
 
     [Theory]
+    [InlineData(".dll")]
+    [InlineData(".sys")]
+    [InlineData(".drv")]
+    [InlineData(".ocx")]
+    [InlineData(".cpl")]
+    [InlineData(".scr")]
     [InlineData(".msi")]
     [InlineData(".msp")]
     [InlineData(".mst")]
-    public void RemovesInstallerCertificate(string extension)
+    public void RemovesSupportedFileCertificate(string extension)
     {
         var root = TempDir.Create();
         var output = Path.Combine(root, "output");

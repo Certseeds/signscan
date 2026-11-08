@@ -10,11 +10,11 @@ internal static class Program
     {
         var inputOption = new Option<DirectoryInfo>("--input-dir")
         {
-            Description = "要递归扫描的目录(扫描 .exe 与 .msi/.msp/.mst 安装包)。",
+            Description = "要递归扫描的目录(扫描受支持的 PE 文件与 .msi/.msp/.mst 安装包)。",
         };
         var allowOption = new Option<DirectoryInfo>("--allow-dir")
         {
-            Description = "白名单目录;扫描其中的 exe,并从输出目录的同名分组中移除其证书。",
+            Description = "白名单目录;扫描其中的受支持文件,并从输出目录的同名分组中移除其证书。",
         };
         var outputOption = new Option<DirectoryInfo>("--output-dir")
         {
@@ -22,7 +22,7 @@ internal static class Program
             Required = true,
         };
 
-        var root = new RootCommand("从安装包 exe 中提取 Authenticode 签名证书。")
+        var root = new RootCommand("从 PE 文件与 Windows Installer 包中提取 Authenticode 签名证书。")
         {
             inputOption,
             allowOption,
@@ -92,7 +92,7 @@ internal static class Program
                 output.FullName,
                 new FileSignerReader()));
 
-            Console.WriteLine($"扫描安装包    : {result.ExeCount}");
+            Console.WriteLine($"扫描文件      : {result.ExeCount}");
             Console.WriteLine($"有内嵌签名    : {result.SignedCount}");
             Console.WriteLine($"提取证书      : {result.CertCount}");
             Console.WriteLine($"跳过(无签名)  : {result.SkippedCount}");
@@ -139,7 +139,7 @@ internal static class Program
                 output.FullName,
                 reader));
 
-            Console.WriteLine($"白名单安装包  : {result.ExeCount}");
+            Console.WriteLine($"白名单文件    : {result.ExeCount}");
             Console.WriteLine($"有内嵌签名    : {result.SignedCount}");
             Console.WriteLine($"移除证书      : {result.RemovedCount}");
             Console.WriteLine($"未命中        : {result.MissingCount}");
