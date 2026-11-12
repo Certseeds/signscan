@@ -29,7 +29,7 @@
 
 ## 开发
 
-- .NET SDK 10(`global.json` 锁定 10.0.403)
+- .NET SDK 10(`global.json` 锁定 10.0.404)
 - NativeAOT 发布需要 Visual Studio 2022 Build Tools 的 MSVC 工具集与 Windows SDK
 
 ```powershell
